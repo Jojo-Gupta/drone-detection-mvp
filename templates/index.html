@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AeroGuard | Surveillance Command</title>
+
+    <style>
+      :root {
+        --bg: #090e16;
+        --panel: #101925;
+        --panel2: #141f2d;
+        --border: #283546;
+        --text: #edf3fa;
+        --muted: #91a1b5;
+        --cyan: #59d9e8;
+        --green: #3ddc97;
+        --red: #ff596b;
+        --orange: #ffb45c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.5 "Segoe UI",
+          Arial,
+          sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+
+      header {
+        height: 72px;
+        padding: 0 26px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border);
+        background: #0c141f;
+      }
+
+      .brand {
+        font-size: 21px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+      }
+
+      .brand span {
+        color: var(--cyan);
+      }
+
+      .subtitle {
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 1px;
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        background: #68778b;
+        border-radius: 50%;
+      }
+
+      .dot.live {
+        background: var(--green);
+      }
+
+      main {
+        max-width: 1600px;
+        margin: auto;
+        padding: 24px;
+      }
+
+      .page-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        font-size: 25px;
+        margin: 0;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 0;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+      .small {
+        font-size: 12px;
+      }
+
+      .connection {
+        display: flex;
+        gap: 9px;
+        width: min(100%, 760px);
+      }
+
+      input {
+        min-width: 0;
+        flex: 1;
+        padding: 11px 13px;
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        outline-offset: 3px;
+      }
+
+      button {
+        padding: 10px 14px;
+        border-radius: 7px;
+        border: 1px solid var(--border);
+        background: var(--panel2);
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      button:hover {
+        filter: brightness(1.15);
+      }
+      button:focus-visible {
+        outline: 2px solid var(--cyan);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .primary {
+        background: #126b62;
+        border-color: #198a7c;
+      }
+
+      .stop-btn {
+        background: #752b39;
+        border-color: #a83b4c;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 13px;
+        margin-bottom: 18px;
+      }
+
+      .metric,
+      .panel {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 10px;
+      }
+
+      .metric {
+        padding: 16px 18px;
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.8px;
+      }
+
+      .metric-value {
+        font-size: 30px;
+        font-weight: 750;
+        margin: 5px 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .metric-foot {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .good {
+        color: var(--green);
+      }
+      .bad {
+        color: var(--red);
+      }
+      .cyan {
+        color: var(--cyan);
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 18px;
+        align-items: start;
+      }
+
+      .panel {
+        padding: 17px;
+        min-width: 0;
+      }
+
+      .panel-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .tag {
+        font-size: 10px;
+        padding: 4px 7px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 4px;
+      }
+
+      .video-wrap {
+        position: relative;
+        min-height: 280px;
+        background: #05090e;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        overflow: hidden;
+      }
+
+      #feed {
+        display: block;
+        width: 100%;
+        height: auto;
+        min-height: 280px;
+        object-fit: contain;
+      }
+
+      #zoneCanvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        touch-action: manipulation;
+      }
+
+      .empty {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        text-align: center;
+        padding: 24px;
+        pointer-events: none;
+      }
+
+      .empty strong {
+        color: var(--text);
+        font-size: 15px;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .toolbar button {
+        font-size: 12px;
+      }
+
+      .help {
+        color: var(--muted);
+        font-size: 12px;
+        margin: 12px 0 0;
+      }
+
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 19px 0;
+      }
+
+      .event-list {
+        max-height: 310px;
+        overflow-y: auto;
+      }
+
+      .event {
+        padding: 11px 0;
+        border-bottom: 1px solid var(--border);
+        overflow-wrap: anywhere;
+      }
+
+      .event:last-child {
+        border-bottom: 0;
+      }
+
+      .event time {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        margin-bottom: 3px;
+      }
+
+      .event-alert {
+        color: var(--red);
+      }
+
+      .object-list {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .object-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+      }
+
+      .object-row:last-child {
+        border-bottom: 0;
+      }
+
+      #error {
+        color: var(--red);
+        font-size: 12px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        margin-top: 12px;
+      }
+
+      footer {
+        margin-top: 20px;
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      @media (max-width: 1000px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        .metrics {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 600px) {
+        header {
+          padding: 0 14px;
+          height: 64px;
+        }
+        main {
+          padding: 16px 12px;
+        }
+        h1 {
+          font-size: 21px;
+        }
+        .subtitle {
+          font-size: 9px;
+        }
+        .connection {
+          flex-wrap: wrap;
+        }
+        .connection input {
+          flex-basis: 100%;
+        }
+        .metric {
+          padding: 12px;
+        }
+        .metric-value {
+          font-size: 25px;
+        }
+        .panel {
+          padding: 12px;
+        }
+        .video-wrap,
+        #feed {
+          min-height: 210px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div>
+        <div class="brand">AERO<span>GUARD</span></div>
+        <div class="subtitle">LOCAL AI SURVEILLANCE</div>
+      </div>
+      <div class="status" aria-live="polite">
+        <span class="dot" id="statusDot"></span>
+        <span id="systemStatus">SYSTEM STANDBY</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="page-heading">
+        <div>
+          <h1>Surveillance Command Center</h1>
+          <div class="muted small">
+            Live detection · Object tracking · Restricted-zone monitoring
+          </div>
+        </div>
+      </section>
+
+      <div class="connection">
+        <input
+          id="cameraUrl"
+          aria-label="Phone camera stream URL"
+          placeholder="Phone camera URL, e.g. http://192.168.1.5:8080/video"
+          value="http://192.168.1.5:8080/video"
+        />
+        <button class="primary" id="startBtn">Start surveillance</button>
+        <button class="stop-btn" id="stopBtn">Stop</button>
+      </div>
+
+      <p class="muted small">
+        Connect your phone and laptop to the same Wi-Fi or phone hotspot.
+        Replace the example URL with your actual camera stream address.
+      </p>
+
+      <section class="metrics" aria-label="Detection statistics">
+        <div class="metric">
+          <div class="metric-label">INFERENCE SPEED</div>
+          <div class="metric-value cyan" id="fps">0.0</div>
+          <div class="metric-foot">Frames per second</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">PEOPLE DETECTED</div>
+          <div class="metric-value" id="people">0</div>
+          <div class="metric-foot">Current frame</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">VEHICLES DETECTED</div>
+          <div class="metric-value" id="vehicles">0</div>
+          <div class="metric-foot">Current frame</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">INTRUSIONS</div>
+          <div class="metric-value" id="intrusions">0</div>
+          <div class="metric-foot" id="cameraStatus">Camera offline</div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="panel">
+          <div class="panel-heading">
+            <h2>Live camera feed</h2>
+            <span class="tag" id="feedStatus">NO SIGNAL</span>
+          </div>
+
+          <div class="video-wrap" id="videoWrap">
+            <img id="feed" alt="Processed live surveillance video" />
+            <canvas
+              id="zoneCanvas"
+              aria-label="Restricted zone drawing area"
+            ></canvas>
+            <div class="empty" id="empty">
+              <strong>Camera feed unavailable</strong>
+              <span>Enter your phone stream URL and start surveillance.</span>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <button id="drawBtn">Draw restricted zone</button>
+            <button class="primary" id="applyBtn">Apply zone</button>
+            <button id="undoBtn">Undo point</button>
+            <button id="clearBtn">Clear drawing</button>
+            <button id="resetBtn">Remove saved zone</button>
+          </div>
+
+          <p class="help" id="drawHint" aria-live="polite">
+            Select Draw restricted zone, then click at least three points around
+            the area you want to protect. Apply the zone to save it.
+          </p>
+
+          <div id="error" role="alert"></div>
+
+          <div class="divider"></div>
+
+          <div class="panel-heading">
+            <h2>Tracked objects</h2>
+            <span class="tag">LIVE</span>
+          </div>
+          <div id="objects" class="object-list" aria-live="polite">
+            <p class="muted small">No detections yet.</p>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <div class="panel-heading">
+            <h2>Security events</h2>
+            <span class="tag">RECENT</span>
+          </div>
+
+          <div id="events" class="event-list" aria-live="polite">
+            <p class="muted small">No events recorded yet.</p>
+          </div>
+
+          <div class="divider"></div>
+
+          <h2>System information</h2>
+          <div class="object-row">
+            <span class="muted">Inference device</span>
+            <strong id="device">Checking…</strong>
+          </div>
+          <div class="object-row">
+            <span class="muted">Model status</span>
+            <strong id="modelStatus">Waiting</strong>
+          </div>
+          <p class="help">AI inference runs on the computer hosting Flask.</p>
+        </aside>
+      </section>
+
+      <footer>
+        AEROGUARD MVP · Local inference · Detection results depend on camera
+        quality and model performance.
+      </footer>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      const feed = $("feed");
+      const canvas = $("zoneCanvas");
+      const ctx = canvas.getContext("2d");
+
+      let draft = [];
+      let saved = [];
+      let drawingEnabled = false;
+      let refreshing = false;
+      let lastStats = null;
+      let lastError = "";
+
+      function showError(message = "") {
+        lastError = message;
+        $("error").textContent = message;
+      }
+
+      async function api(url, options = {}) {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...options.headers,
+          },
+        });
+
+        let data = {};
+        try {
+          data = await response.json();
+        } catch {}
+
+        if (!response.ok) {
+          throw new Error(data.error || `Request failed (${response.status})`);
+        }
+        return data;
+      }
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        renderZone();
+      }
+
+      function renderZone() {
+        const rect = canvas.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
+
+        ctx.clearRect(0, 0, width, height);
+        const points = draft.length ? draft : saved;
+        if (!points.length) return;
+
+        ctx.beginPath();
+        points.forEach((point, i) => {
+          const x = point[0] * width;
+          const y = point[1] * height;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+
+        if (points.length >= 3) {
+          ctx.closePath();
+          ctx.fillStyle = "rgba(255, 89, 107, 0.17)";
+          ctx.fill();
+        }
+
+        ctx.strokeStyle = draft.length ? "#59d9e8" : "#ff596b";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        points.forEach((point) => {
+          ctx.beginPath();
+          ctx.arc(point[0] * width, point[1] * height, 4, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+        });
+      }
+
+      function pointFromEvent(event) {
+        const rect = canvas.getBoundingClientRect();
+        return [
+          Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
+          Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)),
+        ];
+      }
+
+      canvas.addEventListener("click", (event) => {
+        if (!drawingEnabled) return;
+        draft.push(pointFromEvent(event));
+        $("drawHint").textContent =
+          `${draft.length} points placed. Add boundary points, then Apply zone.`;
+        renderZone();
+      });
+
+      $("drawBtn").onclick = () => {
+        drawingEnabled = true;
+        draft = [];
+        showError();
+        $("drawHint").textContent =
+          "Click around the boundary of the restricted area. At least three points are required.";
+        renderZone();
+      };
+
+      $("undoBtn").onclick = () => {
+        draft.pop();
+        renderZone();
+      };
+
+      $("clearBtn").onclick = () => {
+        draft = [];
+        renderZone();
+      };
+
+      $("applyBtn").onclick = async () => {
+        if (draft.length < 3) {
+          showError("Place at least three points before applying the zone.");
+          return;
+        }
+
+        try {
+          const data = await api("/api/zone", {
+            method: "POST",
+            body: JSON.stringify({ points: draft }),
+          });
+
+          saved = data.points || [...draft];
+          draft = [];
+          drawingEnabled = false;
+          showError();
+          $("drawHint").textContent =
+            "Restricted zone saved. Confirm that the backend uses this zone for intrusion checks.";
+          renderZone();
+        } catch (error) {
+          showError(error.message);
+        }
+      };
+
+      $("resetBtn").onclick = async () => {
+        try {
+          await api("/api/zone/reset", { method: "POST" });
+          draft = [];
+          saved = [];
+          drawingEnabled = false;
+          showError();
+          renderZone();
+        } catch (error) {
+          showError(error.message);
+        }
+      };
+
+      $("startBtn").onclick = async () => {
+        const url = $("cameraUrl").value.trim();
+        if (!url) {
+          showError("Enter your phone camera stream URL first.");
+          return;
+        }
+
+        $("startBtn").disabled = true;
+        showError();
+
+        try {
+          // The backend may ignore the URL if it already uses a configured source.
+          const data = await api("/api/start", {
+            method: "POST",
+            body: JSON.stringify({ url }),
+          });
+
+          if (data.ok === false) {
+            throw new Error(data.error || "Could not start surveillance.");
+          }
+
+          feed.src = "/video_feed?t=" + Date.now();
+          $("feedStatus").textContent = "CONNECTING";
+        } catch (error) {
+          showError(error.message);
+        } finally {
+          $("startBtn").disabled = false;
+        }
+      };
+
+      $("stopBtn").onclick = async () => {
+        try {
+          await api("/api/stop", { method: "POST" });
+          feed.removeAttribute("src");
+          $("empty").style.display = "flex";
+          $("feedStatus").textContent = "STOPPED";
+          $("systemStatus").textContent = "SYSTEM STANDBY";
+          $("statusDot").classList.remove("live");
+        } catch (error) {
+          showError(error.message);
+        }
+      };
+
+      feed.addEventListener("load", () => {
+        $("empty").style.display = "none";
+        $("feedStatus").textContent = "LIVE FEED";
+        resizeCanvas();
+      });
+
+      feed.addEventListener("error", () => {
+        $("empty").style.display = "flex";
+        $("feedStatus").textContent = "NO SIGNAL";
+      });
+
+      new ResizeObserver(resizeCanvas).observe($("videoWrap"));
+      window.addEventListener("resize", resizeCanvas);
+
+      function safeText(value) {
+        return String(value ?? "").replace(
+          /[&<>"']/g,
+          (char) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[char],
+        );
+      }
+
+      function renderObjects(objects = []) {
+        if (!objects.length) {
+          $("objects").innerHTML =
+            '<p class="muted small">No detections in the current frame.</p>';
+          return;
+        }
+
+        $("objects").innerHTML = objects
+          .map((obj) => {
+            const label = `${safeText(obj.label)}${
+              obj.id != null ? " #" + safeText(obj.id) : ""
+            }`;
+            const confidence = (Number(obj.confidence || 0) * 100).toFixed(0);
+            const intrusion = Boolean(obj.intruding);
+
+            return `<div class="object-row">
+      <span>${label} · ${confidence}%</span>
+      <strong class="${intrusion ? "bad" : "good"}">
+        ${intrusion ? "INTRUSION" : "NORMAL"}
+      </strong>
+    </div>`;
+          })
+          .join("");
+      }
+
+      function renderEvents(events = []) {
+        if (!events.length) {
+          $("events").innerHTML =
+            '<p class="muted small">No events recorded yet.</p>';
+          return;
+        }
+
+        $("events").innerHTML = events
+          .map((event) => {
+            const message = safeText(event.message);
+            const time = safeText(event.time);
+            const alertClass = /intrusion|restricted|alert/i.test(message)
+              ? "event-alert"
+              : "";
+
+            return `<div class="event ${alertClass}">
+      <time>${time}</time>${message}
+    </div>`;
+          })
+          .join("");
+      }
+
+      async function refreshStats() {
+        if (refreshing) return;
+        refreshing = true;
+
+        try {
+          const data = await api("/api/stats");
+          lastStats = data;
+
+          $("fps").textContent = Number(data.fps || 0).toFixed(1);
+          $("people").textContent = data.people ?? 0;
+          $("vehicles").textContent = data.vehicles ?? 0;
+          $("intrusions").textContent = data.intrusions ?? 0;
+
+          const connected = Boolean(data.camera_connected);
+          const running = Boolean(data.running);
+
+          $("cameraStatus").textContent = connected
+            ? "Camera online"
+            : "Camera offline";
+          $("cameraStatus").className =
+            "metric-foot " + (connected ? "good" : "bad");
+
+          $("systemStatus").textContent = connected
+            ? "SURVEILLANCE ACTIVE"
+            : running
+              ? "CONNECTING TO CAMERA"
+              : "SYSTEM STANDBY";
+
+          $("statusDot").classList.toggle("live", connected);
+          $("modelStatus").textContent = running ? "Running" : "Stopped";
+          $("modelStatus").className = running ? "good" : "muted";
+          $("device").textContent = data.device || "Unknown";
+
+          if (data.error) showError(data.error);
+          else if (lastError && $("error").textContent === lastError)
+            showError();
+
+          if (!connected && !running) {
+            $("empty").style.display = "flex";
+          }
+
+          renderObjects(data.objects || []);
+          renderEvents(data.events || []);
+
+          if (!draft.length && !drawingEnabled && Array.isArray(data.zone)) {
+            saved = data.zone;
+            renderZone();
+          }
+        } catch (error) {
+          $("systemStatus").textContent = "SERVER UNAVAILABLE";
+          $("statusDot").classList.remove("live");
+          $("device").textContent = "Unavailable";
+        } finally {
+          refreshing = false;
+        }
+      }
+
+      resizeCanvas();
+      refreshStats();
+      setInterval(refreshStats, 1000);
+    </script>
+  </body>
+</html>
