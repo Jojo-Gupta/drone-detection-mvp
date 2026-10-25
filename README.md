@@ -302,4 +302,8 @@ AeroGuard/
 - Flask documentation: https://flask.palletsprojects.com/
 - OpenCV documentation: https://docs.opencv.org/
 - PyTorch installation guide: https://pytorch.org/get-started/locally/
-- Python documentation: https://docs.python.org/3/
+- # Python documentation: https://docs.python.org/3/
+
+# drone-detection-mvp
+
+AI-powered drone detection MVP using computer vision for visual detection and real-time inference.
